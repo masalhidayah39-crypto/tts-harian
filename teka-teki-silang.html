@@ -1,0 +1,708 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Teka-Teki Silang (1 Menurun, 2 Mendatar)</title>
+    <style>
+      :root {
+        --cell: 54px;
+        --gap: 6px;
+        --border: #cbd5e1;
+        --bg: #0b1220;
+        --panel: #0f172a;
+        --text: #e2e8f0;
+        --muted: #94a3b8;
+        --ok: #16a34a;
+        --bad: #dc2626;
+        --accent: #38bdf8;
+      }
+      * {
+        box-sizing: border-box;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji",
+          "Segoe UI Emoji";
+      }
+      body {
+        margin: 0;
+        background: radial-gradient(1200px 700px at 10% 10%, #111b35 0%, var(--bg) 55%, #070b14 100%);
+        color: var(--text);
+      }
+      a {
+        color: var(--accent);
+      }
+      .wrap {
+        max-width: 1060px;
+        margin: 0 auto;
+        padding: 22px 16px 40px;
+        display: grid;
+        gap: 16px;
+      }
+      header {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      h1 {
+        font-size: 20px;
+        margin: 0;
+        letter-spacing: 0.2px;
+      }
+      .sub {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.4;
+      }
+      .layout {
+        display: grid;
+        gap: 16px;
+        grid-template-columns: 1fr;
+      }
+      @media (min-width: 980px) {
+        .layout {
+          grid-template-columns: 420px 1fr;
+          align-items: start;
+        }
+      }
+      .card {
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.03));
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        border-radius: 14px;
+        padding: 14px;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+      }
+      .grid {
+        display: grid;
+        gap: var(--gap);
+        justify-content: start;
+      }
+      .cell {
+        position: relative;
+        width: var(--cell);
+        height: var(--cell);
+        border-radius: 10px;
+        border: 1px solid rgba(148, 163, 184, 0.22);
+        background: rgba(255, 255, 255, 0.06);
+        overflow: hidden;
+      }
+      .cell.block {
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(148, 163, 184, 0.12);
+      }
+      .cell input {
+        width: 100%;
+        height: 100%;
+        border: 0;
+        outline: none;
+        background: transparent;
+        color: var(--text);
+        font-size: 22px;
+        text-align: center;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      .number {
+        position: absolute;
+        top: 6px;
+        left: 8px;
+        font-size: 11px;
+        color: rgba(226, 232, 240, 0.75);
+        pointer-events: none;
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        background: rgba(2, 6, 23, 0.3);
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .row {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+      .two {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+      @media (min-width: 700px) {
+        .two {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      label {
+        display: grid;
+        gap: 6px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      input[type="text"],
+      textarea {
+        width: 100%;
+        padding: 10px 10px;
+        border-radius: 10px;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        background: rgba(15, 23, 42, 0.65);
+        color: var(--text);
+        outline: none;
+      }
+      textarea {
+        min-height: 90px;
+        resize: vertical;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-size: 12px;
+        line-height: 1.4;
+      }
+      .btns {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      button {
+        cursor: pointer;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        background: rgba(56, 189, 248, 0.14);
+        color: var(--text);
+      }
+      button.secondary {
+        background: rgba(255, 255, 255, 0.06);
+      }
+      button.danger {
+        background: rgba(220, 38, 38, 0.18);
+      }
+      button:active {
+        transform: translateY(1px);
+      }
+      .clues h2 {
+        margin: 0 0 6px;
+        font-size: 13px;
+        color: rgba(226, 232, 240, 0.9);
+      }
+      .clues ul {
+        margin: 0;
+        padding-left: 18px;
+        color: rgba(226, 232, 240, 0.92);
+        font-size: 13px;
+        line-height: 1.55;
+      }
+      .note {
+        margin: 10px 0 0;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.45;
+      }
+      .status {
+        margin-top: 10px;
+        padding: 10px;
+        border-radius: 12px;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        background: rgba(2, 6, 23, 0.35);
+        color: rgba(226, 232, 240, 0.9);
+        font-size: 12px;
+        min-height: 42px;
+        white-space: pre-wrap;
+      }
+      .ok {
+        color: #bbf7d0;
+      }
+      .bad {
+        color: #fecaca;
+      }
+      .cell.correct {
+        outline: 2px solid rgba(22, 163, 74, 0.55);
+      }
+      .cell.wrong {
+        outline: 2px solid rgba(220, 38, 38, 0.55);
+      }
+      .hr {
+        height: 1px;
+        margin: 12px 0;
+        background: rgba(148, 163, 184, 0.18);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <h1>Game Teka‑Teki Silang (1 menurun, 2 mendatar)</h1>
+        <p class="sub">
+          Bisa dimainkan langsung di browser, pertanyaan/jawaban bisa diubah, dan bisa di‑share lewat link (konfigurasi disimpan
+          di URL).
+        </p>
+      </header>
+
+      <div class="layout">
+        <div class="card">
+          <div class="badge" id="puzzleMeta">Ukuran: 5×5 • Tema: kegiatan/benda sehari‑hari</div>
+          <div class="hr"></div>
+          <div id="grid" class="grid" aria-label="Grid teka-teki silang"></div>
+          <div class="hr"></div>
+          <div class="btns">
+            <button id="btnCheck">Cek Jawaban</button>
+            <button id="btnReveal" class="secondary">Tampilkan Jawaban</button>
+            <button id="btnReset" class="danger">Reset Isian</button>
+          </div>
+          <p class="note">
+            Tips: pakai tombol panah (←↑→↓) untuk pindah kotak. Huruf akan otomatis jadi kapital.
+          </p>
+          <div class="status" id="status"></div>
+        </div>
+
+        <div class="card">
+          <div class="clues">
+            <h2>Mendatar</h2>
+            <ul id="cluesAcross"></ul>
+            <h2 style="margin-top: 12px">Menurun</h2>
+            <ul id="cluesDown"></ul>
+          </div>
+
+          <div class="hr"></div>
+
+          <h2 style="margin: 0 0 8px; font-size: 13px">Ubah Soal & Jawaban</h2>
+          <p class="note" style="margin-top: 0">
+            Catatan: versi sederhana ini memakai grid tetap 5×5 dengan panjang jawaban <b>5 huruf</b> untuk semua kata.
+            Pastikan huruf perpotongan cocok:
+            <br />• Huruf ke‑3 Mendatar 1 harus sama dengan huruf ke‑2 Menurun 1
+            <br />• Huruf ke‑3 Mendatar 2 harus sama dengan huruf ke‑4 Menurun 1
+          </p>
+
+          <div class="row">
+            <label>
+              Mendatar 1 — Pertanyaan
+              <input id="a1Clue" type="text" />
+            </label>
+            <label>
+              Mendatar 1 — Jawaban (5 huruf)
+              <input id="a1Ans" type="text" />
+            </label>
+          </div>
+
+          <div class="hr"></div>
+
+          <div class="row">
+            <label>
+              Mendatar 2 — Pertanyaan
+              <input id="a2Clue" type="text" />
+            </label>
+            <label>
+              Mendatar 2 — Jawaban (5 huruf)
+              <input id="a2Ans" type="text" />
+            </label>
+          </div>
+
+          <div class="hr"></div>
+
+          <div class="row">
+            <label>
+              Menurun 1 — Pertanyaan
+              <input id="d1Clue" type="text" />
+            </label>
+            <label>
+              Menurun 1 — Jawaban (5 huruf)
+              <input id="d1Ans" type="text" />
+            </label>
+          </div>
+
+          <div class="hr"></div>
+
+          <div class="btns">
+            <button id="btnApply">Terapkan Perubahan</button>
+            <button id="btnShare" class="secondary">Buat Link Share</button>
+          </div>
+
+          <label style="margin-top: 10px">
+            Konfigurasi Puzzle (JSON) — opsional (untuk advanced)
+            <textarea id="jsonBox" spellcheck="false"></textarea>
+          </label>
+          <p class="note">
+            Kamu bisa edit JSON lalu klik <b>Terapkan Perubahan</b>. Link share akan menyimpan JSON ini ke URL.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ===== Util =====
+      function normalizeAnswer(raw) {
+        return String(raw || "")
+          .toUpperCase()
+          .replace(/[^A-Z]/g, "");
+      }
+      function encodeConfig(config) {
+        const json = JSON.stringify(config);
+        // UTF-8 safe base64
+        const bytes = new TextEncoder().encode(json);
+        let bin = "";
+        bytes.forEach((b) => (bin += String.fromCharCode(b)));
+        return btoa(bin).replace(/=+$/g, "");
+      }
+      function decodeConfig(b64) {
+        const bin = atob(b64);
+        const bytes = new Uint8Array([...bin].map((ch) => ch.charCodeAt(0)));
+        const json = new TextDecoder().decode(bytes);
+        return JSON.parse(json);
+      }
+      function setStatus(msg, kind) {
+        const el = document.getElementById("status");
+        el.textContent = msg || "";
+        el.classList.remove("ok", "bad");
+        if (kind) el.classList.add(kind);
+      }
+
+      // ===== Puzzle model (grid FIXED: 5x5, 1 down + 2 across) =====
+      // Coordinates are 0-indexed.
+      const FIXED_LAYOUT = {
+        size: 5,
+        across: [
+          { num: 1, row: 1, col: 0, len: 5 }, // Mendatar 1
+          { num: 2, row: 3, col: 0, len: 5 }, // Mendatar 2
+        ],
+        down: [{ num: 1, row: 0, col: 2, len: 5 }], // Menurun 1
+      };
+
+      const DEFAULT_CONFIG = {
+        theme: "kegiatan/benda sehari-hari",
+        clues: {
+          across: [
+            { num: 1, clue: "Yang sering kita lihat di langit (cuaca)", answer: "CUACA" },
+            { num: 2, clue: "Bedak dipakai untuk… (benda perawatan)", answer: "BEDAK" },
+          ],
+          down: [{ num: 1, clue: "Kegiatan membersihkan badan", answer: "MANDI" }],
+        },
+      };
+
+      function validateAndBuild(config) {
+        const a1 = normalizeAnswer(config?.clues?.across?.[0]?.answer);
+        const a2 = normalizeAnswer(config?.clues?.across?.[1]?.answer);
+        const d1 = normalizeAnswer(config?.clues?.down?.[0]?.answer);
+
+        if (a1.length !== 5 || a2.length !== 5 || d1.length !== 5) {
+          throw new Error("Semua jawaban wajib 5 huruf (A–Z).");
+        }
+        // Intersections:
+        // - A1 intersects D1 at row=1 col=2 -> A1[2] === D1[1]
+        // - A2 intersects D1 at row=3 col=2 -> A2[2] === D1[3]
+        if (a1[2] !== d1[1]) {
+          throw new Error("Perpotongan tidak cocok: huruf ke-3 Mendatar 1 harus sama dengan huruf ke-2 Menurun 1.");
+        }
+        if (a2[2] !== d1[3]) {
+          throw new Error("Perpotongan tidak cocok: huruf ke-3 Mendatar 2 harus sama dengan huruf ke-4 Menurun 1.");
+        }
+
+        // Build solution grid
+        const size = FIXED_LAYOUT.size;
+        const grid = Array.from({ length: size }, () => Array.from({ length: size }, () => "#"));
+
+        // place words
+        // across 1
+        for (let i = 0; i < 5; i++) grid[1][i] = a1[i];
+        // across 2
+        for (let i = 0; i < 5; i++) grid[3][i] = a2[i];
+        // down 1
+        for (let i = 0; i < 5; i++) grid[i][2] = d1[i];
+
+        // Normalize config back
+        const normalized = JSON.parse(JSON.stringify(config || {}));
+        normalized.theme = String(normalized.theme || DEFAULT_CONFIG.theme);
+        normalized.clues = normalized.clues || {};
+        normalized.clues.across = normalized.clues.across || [];
+        normalized.clues.down = normalized.clues.down || [];
+        normalized.clues.across[0] = {
+          num: 1,
+          clue: String(config?.clues?.across?.[0]?.clue || ""),
+          answer: a1,
+        };
+        normalized.clues.across[1] = {
+          num: 2,
+          clue: String(config?.clues?.across?.[1]?.clue || ""),
+          answer: a2,
+        };
+        normalized.clues.down[0] = {
+          num: 1,
+          clue: String(config?.clues?.down?.[0]?.clue || ""),
+          answer: d1,
+        };
+
+        return { config: normalized, solutionGrid: grid };
+      }
+
+      // ===== Render / Game logic =====
+      let state = {
+        config: DEFAULT_CONFIG,
+        solutionGrid: null,
+        inputs: new Map(), // key "r,c" -> input element
+      };
+
+      function renderClues(config) {
+        const acrossEl = document.getElementById("cluesAcross");
+        const downEl = document.getElementById("cluesDown");
+        acrossEl.innerHTML = "";
+        downEl.innerHTML = "";
+
+        for (const item of config.clues.across) {
+          const li = document.createElement("li");
+          li.textContent = `${item.num}. ${item.clue || "(tanpa pertanyaan)"}`;
+          acrossEl.appendChild(li);
+        }
+        for (const item of config.clues.down) {
+          const li = document.createElement("li");
+          li.textContent = `${item.num}. ${item.clue || "(tanpa pertanyaan)"}`;
+          downEl.appendChild(li);
+        }
+
+        document.getElementById("puzzleMeta").textContent = `Ukuran: 5×5 • Tema: ${config.theme || ""}`;
+      }
+
+      function renderEditor(config) {
+        document.getElementById("a1Clue").value = config?.clues?.across?.[0]?.clue || "";
+        document.getElementById("a1Ans").value = config?.clues?.across?.[0]?.answer || "";
+        document.getElementById("a2Clue").value = config?.clues?.across?.[1]?.clue || "";
+        document.getElementById("a2Ans").value = config?.clues?.across?.[1]?.answer || "";
+        document.getElementById("d1Clue").value = config?.clues?.down?.[0]?.clue || "";
+        document.getElementById("d1Ans").value = config?.clues?.down?.[0]?.answer || "";
+        document.getElementById("jsonBox").value = JSON.stringify(config, null, 2);
+      }
+
+      function cellKey(r, c) {
+        return `${r},${c}`;
+      }
+
+      function renderGrid(solutionGrid) {
+        const size = solutionGrid.length;
+        const gridEl = document.getElementById("grid");
+        gridEl.style.gridTemplateColumns = `repeat(${size}, var(--cell))`;
+        gridEl.innerHTML = "";
+        state.inputs = new Map();
+
+        const starts = new Map();
+        // Start numbers
+        starts.set(cellKey(1, 0), "1"); // across1
+        starts.set(cellKey(3, 0), "2"); // across2
+        starts.set(cellKey(0, 2), "1"); // down1
+
+        for (let r = 0; r < size; r++) {
+          for (let c = 0; c < size; c++) {
+            const v = solutionGrid[r][c];
+            const cell = document.createElement("div");
+            cell.className = "cell" + (v === "#" ? " block" : "");
+
+            const n = starts.get(cellKey(r, c));
+            if (n) {
+              const num = document.createElement("div");
+              num.className = "number";
+              num.textContent = n;
+              cell.appendChild(num);
+            }
+
+            if (v !== "#") {
+              const inp = document.createElement("input");
+              inp.inputMode = "latin";
+              inp.autocomplete = "off";
+              inp.autocapitalize = "characters";
+              inp.spellcheck = false;
+              inp.maxLength = 1;
+              inp.setAttribute("aria-label", `Baris ${r + 1} kolom ${c + 1}`);
+
+              inp.addEventListener("input", () => {
+                inp.value = normalizeAnswer(inp.value).slice(0, 1);
+                cell.classList.remove("correct", "wrong");
+                // auto move right (simple default)
+                if (inp.value) {
+                  const next = state.inputs.get(cellKey(r, c + 1));
+                  if (next) next.focus();
+                }
+              });
+
+              inp.addEventListener("keydown", (e) => {
+                const go = (rr, cc) => {
+                  const t = state.inputs.get(cellKey(rr, cc));
+                  if (t) {
+                    t.focus();
+                    e.preventDefault();
+                  }
+                };
+                if (e.key === "ArrowLeft") go(r, c - 1);
+                if (e.key === "ArrowRight") go(r, c + 1);
+                if (e.key === "ArrowUp") go(r - 1, c);
+                if (e.key === "ArrowDown") go(r + 1, c);
+                if (e.key === "Backspace" && !inp.value) go(r, c - 1);
+              });
+
+              cell.appendChild(inp);
+              state.inputs.set(cellKey(r, c), inp);
+            }
+
+            gridEl.appendChild(cell);
+          }
+        }
+      }
+
+      function clearMarks() {
+        document.querySelectorAll(".cell.correct,.cell.wrong").forEach((el) => el.classList.remove("correct", "wrong"));
+      }
+
+      function resetInputs() {
+        clearMarks();
+        for (const inp of state.inputs.values()) inp.value = "";
+        const first = state.inputs.get(cellKey(1, 0));
+        if (first) first.focus();
+        setStatus("Isian direset.", null);
+      }
+
+      function checkAnswers() {
+        clearMarks();
+        const size = state.solutionGrid.length;
+        let filled = 0;
+        let total = 0;
+        let correct = 0;
+
+        for (let r = 0; r < size; r++) {
+          for (let c = 0; c < size; c++) {
+            const sol = state.solutionGrid[r][c];
+            if (sol === "#") continue;
+            total++;
+            const inp = state.inputs.get(cellKey(r, c));
+            const val = normalizeAnswer(inp?.value || "").slice(0, 1);
+            if (val) filled++;
+
+            const cell = inp?.parentElement;
+            if (val && val === sol) {
+              correct++;
+              cell?.classList.add("correct");
+            } else if (val && val !== sol) {
+              cell?.classList.add("wrong");
+            }
+          }
+        }
+
+        if (filled < total) {
+          setStatus(`Terisi: ${filled}/${total}. Benar (dari yang terisi): ${correct}/${filled || 1}.`, null);
+          return;
+        }
+        if (correct === total) setStatus("Mantap! Semua jawaban benar.", "ok");
+        else setStatus(`Masih ada yang salah. Benar: ${correct}/${total}.`, "bad");
+      }
+
+      function revealAnswers() {
+        clearMarks();
+        const size = state.solutionGrid.length;
+        for (let r = 0; r < size; r++) {
+          for (let c = 0; c < size; c++) {
+            const sol = state.solutionGrid[r][c];
+            if (sol === "#") continue;
+            const inp = state.inputs.get(cellKey(r, c));
+            if (inp) inp.value = sol;
+          }
+        }
+        setStatus("Jawaban ditampilkan.", null);
+      }
+
+      function applyFromEditor() {
+        // priority: JSON box (if valid JSON), otherwise fields.
+        const jsonText = document.getElementById("jsonBox").value.trim();
+        let cfg = null;
+        try {
+          cfg = jsonText ? JSON.parse(jsonText) : null;
+        } catch {
+          cfg = null;
+        }
+
+        if (!cfg) {
+          cfg = {
+            theme: state.config.theme,
+            clues: {
+              across: [
+                { num: 1, clue: document.getElementById("a1Clue").value, answer: document.getElementById("a1Ans").value },
+                { num: 2, clue: document.getElementById("a2Clue").value, answer: document.getElementById("a2Ans").value },
+              ],
+              down: [{ num: 1, clue: document.getElementById("d1Clue").value, answer: document.getElementById("d1Ans").value }],
+            },
+          };
+        }
+
+        const built = validateAndBuild(cfg);
+        state.config = built.config;
+        state.solutionGrid = built.solutionGrid;
+
+        renderClues(state.config);
+        renderEditor(state.config);
+        renderGrid(state.solutionGrid);
+        resetInputs();
+        setStatus("Perubahan diterapkan. Silakan isi grid.", null);
+      }
+
+      function makeShareLink() {
+        try {
+          const packed = encodeConfig(state.config);
+          const url = new URL(window.location.href);
+          url.hash = `p=${packed}`;
+          window.history.replaceState({}, "", url.toString());
+
+          // Copy
+          const txt = url.toString();
+          if (navigator.clipboard?.writeText) {
+            navigator.clipboard.writeText(txt).then(
+              () => setStatus("Link share sudah dibuat dan disalin ke clipboard.", "ok"),
+              () => {
+                window.prompt("Salin link ini:", txt);
+                setStatus("Link share dibuat. (Clipboard tidak tersedia, tampilkan lewat prompt.)", null);
+              }
+            );
+          } else {
+            window.prompt("Salin link ini:", txt);
+            setStatus("Link share dibuat. (Clipboard tidak tersedia, tampilkan lewat prompt.)", null);
+          }
+        } catch (e) {
+          setStatus(`Gagal membuat link share: ${e?.message || e}`, "bad");
+        }
+      }
+
+      function loadConfigFromUrlOrDefault() {
+        const hash = String(window.location.hash || "");
+        const m = hash.match(/p=([^&]+)/);
+        if (m && m[1]) {
+          try {
+            const cfg = decodeConfig(m[1]);
+            const built = validateAndBuild(cfg);
+            return built;
+          } catch (e) {
+            // Fall through to default
+            setStatus(`Config dari URL tidak valid, kembali ke default.\nDetail: ${e?.message || e}`, "bad");
+          }
+        }
+        return validateAndBuild(DEFAULT_CONFIG);
+      }
+
+      // ===== Init =====
+      const built = loadConfigFromUrlOrDefault();
+      state.config = built.config;
+      state.solutionGrid = built.solutionGrid;
+
+      renderClues(state.config);
+      renderEditor(state.config);
+      renderGrid(state.solutionGrid);
+      resetInputs();
+      setStatus("Siap dimainkan. Isi huruf lalu klik “Cek Jawaban”.", null);
+
+      document.getElementById("btnCheck").addEventListener("click", checkAnswers);
+      document.getElementById("btnReveal").addEventListener("click", revealAnswers);
+      document.getElementById("btnReset").addEventListener("click", resetInputs);
+      document.getElementById("btnApply").addEventListener("click", () => {
+        try {
+          applyFromEditor();
+        } catch (e) {
+          setStatus(`Tidak bisa menerapkan perubahan: ${e?.message || e}`, "bad");
+        }
+      });
+      document.getElementById("btnShare").addEventListener("click", makeShareLink);
+    </script>
+  </body>
+</html>
+
